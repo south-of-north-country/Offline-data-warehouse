@@ -1,8 +1,4 @@
 # Offline-data-warehouse
-E-commerce offline data warehouse code
-
-[toc]
-
 
 
 # 项目需求
@@ -15,11 +11,52 @@ E-commerce offline data warehouse code
 
 
 
-# 总体架构
+# 总体架构+数仓分层
 
-![image-20200616191040061](../../images/data-warehouse/image-20200616191040061.png)
+![微信图片_20230307170500](https://user-images.githubusercontent.com/127186396/223374825-417b1832-ef24-41dc-a188-316672608171.png)
 
-![](../../images/data-warehouse/image-20200615175921248.png)
+![image-20200615175921248](https://user-images.githubusercontent.com/127186396/223373306-6d6639ca-f5d8-4d9a-b339-848e2ce819c9.png)
+
+   * ODS层： 
+   
+              1）保持数据原貌不做任何修改，起到备份数据的作用。
+   
+              2）数据采用LZO压缩，减少磁盘存储空间。100G数据可以压缩到10G以内。
+              
+              3）创建分区表，防止后续的全表扫描，在企业开发中大量使用分区表。
+              
+              4）创建外部表。在企业开发中，除了自己用的临时表，创建内部表外，绝大多数场景都是创建外部表。
+
+   * DIM层和DWD层：
+   
+              1）采用星型模型
+              2）选择业务过程→声明粒度→确认维度→确认事实
+              3）选择合适的度量值和事实
+![image](https://user-images.githubusercontent.com/127186396/223378795-c2306a38-bc2d-45f2-9fe9-ecef2fcfb3fc.png)
+
+              
+   * DWS层与DWT层:
+   
+              １）需要建哪些宽表：以维度为基准
+              
+              ２）宽表里面的字段：是站在不同维度的角度去看事实表，重点关注事实表聚合后的度量值
+              
+              ３）DWS和DWT层的区别：DWS层存放的所有主题对象当天的汇总行为，例如每个地区当天的下单次数，下单金额等，
+                                   DWT层存放的是所有主题对象的累积行为，例如每个地区最近７天（15天、30天、60天）的下单次数、下单金额等
+              
+
+   * ADS层：对系统各大主题指标进行分析
+   
+   
+# 可视化报表   
+
+## 1.用户路径分析
+
+![用户路径分析-2023-03-07T08-33-11 729Z](https://user-images.githubusercontent.com/127186396/223380107-027b97b4-ea4a-4cdf-a32e-2ed2da76979a.jpg)
+
+## 2、各订单统计
+
+![各订单统计-2023-03-07T08-35-22 319Z](https://user-images.githubusercontent.com/127186396/223380366-36cb13d2-2d30-4e3c-9c39-38312949b0c0.jpg)
 
 # 项目架构
 
@@ -145,13 +182,14 @@ E-commerce offline data warehouse code
 
 * 对于移动端，并不是产生一条日志就发送一条数据到日志服务器，而是将日志缓存在手机中，隔一段时间上报一次（一批一批上报），et是一个数组，即有多个事件
 
-![](../../images/data-warehouse/image-20200617162055794.png)
+![image-20200617162055794](https://user-images.githubusercontent.com/127186396/223373544-03c7db87-54c0-41d3-8235-a51baf778d39.png)
+
 
 * 日志服务器上的日志格式
 
   相比较上面的格式，只是多了一个服务器的接收时间
 
-  ![image-20200617163225863](../../images/data-warehouse/image-20200617163225863.png)
+![image-20200617163225863](https://user-images.githubusercontent.com/127186396/223373572-6c30adb3-3261-448c-a526-a84189f3bb24.png)
 
 
 
@@ -171,89 +209,21 @@ loading_way
 extend1
 ```
 
-![](../../images/data-warehouse/image-20200617153613417.png)
+![image-20200617153613417](https://user-images.githubusercontent.com/127186396/223374076-bce3453c-33b8-4526-8dbe-cc5eb130bca1.png)
 
 商品点击（display)
 
-![](../../images/data-warehouse/image-20200617154351318.png)
+![image-20200617154351318](https://user-images.githubusercontent.com/127186396/223374124-a02d76cc-0053-413b-9d01-0d1a840e3555.png)
 
 
 
 商品详情页（newsdetail)
 
-![d](../../images/data-warehouse/image-20200617154527965.png)
+![image-20200617154527965](https://user-images.githubusercontent.com/127186396/223374111-fde39ec5-8f96-4de9-908d-50aee3118d85.png)
 
 
 
-广告(ad)
 
-前端 --> 广告管理平台--->第三方的广告投递商
-
-```shell
-source : 第三方的广告投递商：百度，Facebook等
-behavior：主动广告（搜索里面带的），被动广告（server主动推送的）
-newstype:
-```
-
-
-
-![](../../images/data-warehouse/image-20200617154835812.png)
-
-![image-20200617160200314](../../images/data-warehouse/image-20200617160200314.png)
-
-
-
-消息通知（notification）
-
-![image-20200617160412977](../../images/data-warehouse/image-20200617160412977.png)
-
-
-
-用户前台活跃（active_foreground）
-
-```shell
-access: 打开的方式：push(一条推送方式打开)；icon（点击app的图标打开app）；other
-```
-
-
-
-![](../../images/data-warehouse/image-20200617160529962.png)
-
-
-
-用户后台活跃（active_background)
-
-![](../../images/data-warehouse/image-20200617160741289.png)
-
-
-
-评论（comment）
-
-![image-20200617160830636](../../images/data-warehouse/image-20200617160830636.png)
-
-
-
-收藏（favorites）
-
-![](../../images/data-warehouse/image-20200617160909734.png)
-
-![image-20200617160925083](../../images/data-warehouse/image-20200617160925083.png)
-
-点赞（praise）
-
-![image-20200617160941123](../../images/data-warehouse/image-20200617160941123.png)
-
-错误日志
-
-![image-20200617161001117](../../images/data-warehouse/image-20200617161001117.png)
-
-
-
-## 启动日志
-
-![image-20200617163719784](../../images/data-warehouse/image-20200617163719784.png)
-
-![image-20200617164020791](../../images/data-warehouse/image-20200617164020791.png)
 
 ```shell
 push 推送
@@ -266,20 +236,6 @@ open_od_type:开屏广告的类型： 开屏原生广告，开屏插屏广告
 
 en :日志类型，可以用于区分，是启动日志，还是事件日志
 ```
-
-​	![image-20200617164246892](../../images/data-warehouse/image-20200617164246892.png)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
