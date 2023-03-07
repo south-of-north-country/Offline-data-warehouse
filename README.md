@@ -10,6 +10,10 @@
 数据的基本处理：留存、转化率、GMV，复购率、PV，UV等报表分析（SQL）
 
 
+# 数仓流程设计
+
+![数仓流程设计](https://user-images.githubusercontent.com/127186396/223382935-538c0a9c-fcb5-47be-8315-d9505cd90cc6.png)
+
 
 # 总体架构+数仓分层
 
